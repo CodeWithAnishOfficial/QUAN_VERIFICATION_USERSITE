@@ -1,16 +1,49 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { mockUsers } from '../../data/mockUsers';
 import {
   MapPin, Phone, Mail, Briefcase, Clock, CheckCircle,
   Download, Trash2, Edit2,
-  ShieldCheck, X, LogOut
+  ShieldCheck, X, LogOut, Search, Bell, Menu
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EndUserDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('Resume');
   const userStr = localStorage.getItem('user');
   const initialUser = userStr ? JSON.parse(userStr) : null;
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      const filtered = mockUsers.filter(u =>
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.role.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchResults(filtered);
+      setIsSearchOpen(true);
+    } else {
+      setSearchResults([]);
+      setIsSearchOpen(false);
+    }
+  }, [searchQuery]);
 
   // Profile State
   const [profile, setProfile] = useState({
@@ -98,6 +131,115 @@ const EndUserDashboard = () => {
 
   return (
     <div className="bg-[#F4F4F4] min-h-screen pb-20">
+      {/* Dashboard Header */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+        <div className="h-[88px] flex items-center justify-between px-10">
+          <div className="flex-1 max-w-2xl relative" ref={searchRef}>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-quanverification-brand transition-colors" size={18} />
+              <input
+                type="text"
+                placeholder="Search for verified professionals..."
+                className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-quanverification-brand/10 focus:bg-white transition-all font-bold"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim() && setIsSearchOpen(true)}
+              />
+            </div>
+
+            {/* Search Results Dropdown */}
+            {isSearchOpen && (
+              <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-2 z-[100]">
+                {searchResults.length > 0 ? (
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {searchResults.map((result) => (
+                      <button
+                        key={result.id}
+                        className="w-full px-4 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors text-left"
+                        onClick={() => {
+                          setIsSearchOpen(false);
+                          setSearchQuery('');
+                          navigate(`/profile/${result.id}`);
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-quanverification-brand flex items-center justify-center shrink-0 border border-gray-100 text-white font-bold">
+                          {result.name.charAt(0)}
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-gray-900">{result.name}</span>
+                            {result.verified && <ShieldCheck size={14} className="text-quanverification-brand" />}
+                          </div>
+                          <div className="text-[12px] text-gray-500 font-medium">{result.role}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-6 py-4 text-center text-sm text-gray-400 font-bold">
+                    No results found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 border-l border-gray-100 pl-6">
+              <button className="p-2.5 text-gray-400 hover:bg-gray-50 rounded-xl transition-colors relative">
+                <Bell size={24} />
+                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-quanverification-brand rounded-full border-2 border-white"></span>
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-4 pl-4 border-l border-gray-100">
+              <div className="text-right">
+                <p className="text-sm font-black text-gray-900">{initialUser?.name}</p>
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">End User Account</p>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md shadow-quanverification-brand/10 border-2 border-quanverification-brand/10">
+                <span className="text-xl font-black text-quanverification-brand">{initialUser?.name?.charAt(0)}</span>
+              </div>
+            </div>
+
+            {/* Hamburger Icon with Text */}
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="flex items-center gap-2 px-3 py-2 ml-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors group"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <span className="text-[13px] font-bold uppercase tracking-wider">
+                {isMenuOpen ? 'Close' : 'More'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Secondary Navigation Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="bg-gray-50 border-t border-gray-100 overflow-hidden"
+            >
+              <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-20 py-4">
+                <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+                  <Link to="/" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Home</Link>
+                  <Link to="/services" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Services</Link>
+                  <Link to="/careers" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Careers</Link>
+                  <Link to="/about" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">About</Link>
+                  <Link to="/support" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Help & Support</Link>
+                  <Link to="/contact" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Contact</Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
       <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-20 pt-8 flex justify-end">
         <button 
           onClick={handleDownloadFullProfile}
@@ -514,12 +656,27 @@ const EndUserDashboard = () => {
 
       {/* Floating Need Help */}
       <div className="fixed bottom-8 right-8 z-50">
-        <button className="flex items-center space-x-3 bg-white text-gray-800 px-6 py-4 rounded-full shadow-2xl font-bold transition-all border border-gray-100 group hover:bg-gray-50">
-          <div className="bg-quanverification-light-brand p-2 rounded-full text-quanverification-dark-brand group-hover:scale-110 transition-transform">
-            <ShieldCheck size={24} />
-          </div>
-          <span className="text-[17px]">Need any help?</span>
-        </button>
+        <Link to="/support">
+          <motion.button 
+            initial={{ width: "80px" }}
+            whileHover={{ width: "320px" }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="flex items-center bg-white/30 backdrop-blur-xl text-gray-900 h-20 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-white/40 group overflow-hidden hover:bg-white/40 transition-colors"
+          >
+            <div className="flex-shrink-0 w-20 flex items-center justify-center">
+              <div className="relative w-12 h-10">
+                {/* Overlapping Speech Bubbles Icon */}
+                <div className="absolute top-0 left-0 w-9 h-9 bg-quanverification-brand rounded-full rounded-br-none -rotate-12 shadow-lg"></div>
+                <div className="absolute bottom-0 right-0 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full rounded-bl-none flex items-center justify-center shadow-lg border border-white/50">
+                  <span className="text-quanverification-brand text-xl font-black">?</span>
+                </div>
+              </div>
+            </div>
+            <span className="text-[20px] font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 ml-2 pr-8 tracking-tight">
+              Need any help?
+            </span>
+          </motion.button>
+        </Link>
       </div>
     </div>
   );

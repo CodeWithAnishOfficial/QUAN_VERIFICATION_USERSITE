@@ -332,18 +332,18 @@ const Home = () => {
             initial={{ width: "80px" }}
             whileHover={{ width: "320px" }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="flex items-center bg-[#A7C0C7] text-black h-20 rounded-full shadow-2xl border-2 border-white/50 group overflow-hidden"
+            className="flex items-center bg-white/30 backdrop-blur-xl text-gray-900 h-20 rounded-full shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] border border-white/40 group overflow-hidden hover:bg-white/40 transition-colors"
           >
             <div className="flex-shrink-0 w-20 flex items-center justify-center">
               <div className="relative w-12 h-10">
                 {/* Overlapping Speech Bubbles Icon */}
-                <div className="absolute top-0 left-0 w-9 h-9 bg-black rounded-full rounded-br-none -rotate-12"></div>
-                <div className="absolute bottom-0 right-0 w-9 h-9 bg-[#8B3131] rounded-full rounded-bl-none flex items-center justify-center shadow-lg border-2 border-[#A7C0C7]">
-                  <span className="text-white text-xl font-black">?</span>
+                <div className="absolute top-0 left-0 w-9 h-9 bg-quanverification-brand rounded-full rounded-br-none -rotate-12 shadow-lg"></div>
+                <div className="absolute bottom-0 right-0 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full rounded-bl-none flex items-center justify-center shadow-lg border border-white/50">
+                  <span className="text-quanverification-brand text-xl font-black">?</span>
                 </div>
               </div>
             </div>
-            <span className="text-[22px] font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 ml-2 pr-8">
+            <span className="text-[20px] font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 ml-2 pr-8 tracking-tight">
               Need any help?
             </span>
           </motion.button>
