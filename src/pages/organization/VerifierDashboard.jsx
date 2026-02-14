@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { mockUsers } from '../../data/mockUsers';
 import {
   Check, X, Search, LayoutDashboard,
   LogOut, Bell, ChevronRight, MoreHorizontal,
   Grid, Clock, Star, ChevronLeft, Upload, History, User,
-  Briefcase, GraduationCap, ShieldCheck, Mail, Phone, MapPin, Camera, FileText, Zap
+  Briefcase, GraduationCap, ShieldCheck, Mail, Phone, MapPin, Camera, FileText, Zap, Menu
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const VerifierDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
 
@@ -23,6 +25,7 @@ const VerifierDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -387,72 +390,109 @@ const VerifierDashboard = () => {
       {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="h-24 bg-white flex items-center justify-between px-10 border-b border-gray-50 shrink-0">
-          <div className="relative w-1/3" ref={searchRef}>
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search Verification"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => searchQuery.trim() && setIsSearchOpen(true)}
-              className="w-full pl-12 pr-6 py-3.5 bg-[#f5f6f7] border-none rounded-2xl focus:ring-2 focus:ring-quanverification-brand/20 text-sm font-medium transition-all"
-            />
-            {/* Search Results Dropdown */}
-            {isSearchOpen && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-2 z-[100]">
-                {searchResults.length > 0 ? (
-                  <div className="max-h-[400px] overflow-y-auto">
-                    {searchResults.map((result) => (
-                      <button
-                        key={result.id}
-                        className="w-full px-4 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors text-left"
-                        onClick={() => {
-                          setIsSearchOpen(false);
-                          setSearchQuery('');
-                          navigate(`/profile/${result.id}`);
-                        }}
-                      >
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
-                          <img src={result.avatar} alt={result.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-bold text-gray-900">{result.name}</span>
-                            {result.verified && <ShieldCheck size={14} className="text-quanverification-brand" />}
+        <header className="bg-white border-b border-gray-50 shrink-0 sticky top-0 z-40">
+          <div className="h-24 flex items-center justify-between px-10">
+            <div className="relative w-1/3" ref={searchRef}>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search Verification"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim() && setIsSearchOpen(true)}
+                className="w-full pl-12 pr-6 py-3.5 bg-[#f5f6f7] border-none rounded-2xl focus:ring-2 focus:ring-quanverification-brand/20 text-sm font-medium transition-all"
+              />
+              {/* Search Results Dropdown */}
+              {isSearchOpen && (
+                <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-2 z-[100]">
+                  {searchResults.length > 0 ? (
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {searchResults.map((result) => (
+                        <button
+                          key={result.id}
+                          className="w-full px-4 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors text-left"
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            setSearchQuery('');
+                            navigate(`/profile/${result.id}`);
+                          }}
+                        >
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
+                            <img src={result.avatar} alt={result.name} className="w-full h-full object-cover" />
                           </div>
-                          <div className="text-[12px] text-gray-500 font-medium">{result.role}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="px-6 py-4 text-center text-sm text-gray-400">
-                    No results found
-                  </div>
-                )}
+                          <div className="flex-grow">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-bold text-gray-900">{result.name}</span>
+                              {result.verified && <ShieldCheck size={14} className="text-quanverification-brand" />}
+                            </div>
+                            <div className="text-[12px] text-gray-500 font-medium">{result.role}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-6 py-4 text-center text-sm text-gray-400">
+                      No results found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2 border-l border-gray-100 pl-6">
+                <button className="p-2.5 text-gray-400 hover:bg-gray-50 rounded-xl transition-colors relative">
+                  <Bell size={24} />
+                  <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-quanverification-brand rounded-full border-2 border-white"></span>
+                </button>
               </div>
+
+              <div className="flex items-center space-x-4 pl-4 border-l border-gray-100">
+                <div className="text-right">
+                  <p className="text-sm font-black text-gray-900">{user.name}</p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Organization Verifier</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md shadow-quanverification-brand/10 border-2 border-quanverification-brand/10">
+                  <span className="text-xl font-black text-quanverification-brand">{user.name.charAt(0)}</span>
+                </div>
+
+                {/* Hamburger Icon with Text */}
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 ml-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors group"
+                >
+                  {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                  <span className="text-[13px] font-bold uppercase tracking-wider">
+                    {isMenuOpen ? 'Close' : 'More'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Secondary Navigation Menu */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="bg-gray-50 border-t border-gray-100 overflow-hidden"
+              >
+                <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-20 py-4">
+                  <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+                    <Link to="/" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Home</Link>
+                    <Link to="/services" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Services</Link>
+                    <Link to="/careers" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Careers</Link>
+                    <Link to="/about" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">About</Link>
+                    <Link to="/support" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Help & Support</Link>
+                    <Link to="/contact" className="text-[15px] font-bold transition-colors py-2 px-1 border-b-2 text-gray-700 border-transparent hover:text-quanverification-brand hover:border-quanverification-brand">Contact</Link>
+                  </div>
+                </div>
+              </motion.div>
             )}
-          </div>
-
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 border-l border-gray-100 pl-6">
-              <button className="p-2.5 text-gray-400 hover:bg-gray-50 rounded-xl transition-colors relative">
-                <Bell size={24} />
-                <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-quanverification-brand rounded-full border-2 border-white"></span>
-              </button>
-            </div>
-
-            <div className="flex items-center space-x-4 pl-4 border-l border-gray-100">
-              <div className="text-right">
-                <p className="text-sm font-black text-gray-900">{user.name}</p>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Organization Verifier</p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md shadow-quanverification-brand/10 border-2 border-quanverification-brand/10">
-                <span className="text-xl font-black text-quanverification-brand">{user.name.charAt(0)}</span>
-              </div>
-            </div>
-          </div>
+          </AnimatePresence>
         </header>
 
         {/* Combined Scrollable Body Content */}
